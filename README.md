@@ -17,39 +17,6 @@ ruby projects.
 This notifier will attempt to deliver a payload via push or direct e-mail:
 
 ```ruby
-# app/notifiers/like_notifier.rb
-class LikeNotifier < ActiveNotifier::Base
-  queue_as :like_notifications # default is :notifications
-
-  attr_accessor :like
-
-  deliver_through :email do |config|
-    config.email_attribute :email_address # defaults to :email
-    config.subject "You just received a like"
-  end
-
-  deliver_through :push do |config|
-    config.network_attribute :device_network
-    config.token_attribute :device_token
-  end
-end
-```
-
-```erb
-<!-- app/views/notifiers/like/email.html.erb -->
-Hi <%= @recipient.name %>!
-
-You just received a like.
-<%= link_to 'View this', like_path(@paylod) %>
-```
-
-```json
-// app/views/notifiers/like/push.json.json_builder
-message "You've just received a like!"
-badge @recipient.likes.unread.count
-```
-
-```ruby
 class LikesController < ApplicationController
   def create
     @like = Like.create(like_params)
@@ -65,6 +32,49 @@ class LikesController < ApplicationController
 end
 ```
 
+```ruby
+# app/notifiers/like_notifier.rb
+class LikeNotifier < ActiveNotifier::Base
+  queue_as :like_notifications # default is :notifications
+
+  attr_accessor :like
+
+  deliver_through :email do |config|
+    config.email_attribute :email_address # defaults to :email
+    config.subject "You just received a like"
+  end
+
+  deliver_through :push do |config|
+    config.network_attribute :device_network
+    config.token_attribute :device_token
+    config.serializer Notifiers::LikeSerializer
+  end
+end
+```
+
+```erb
+<!-- app/views/notifiers/like/email.html.erb -->
+Hi <%= @recipient.name %>!
+
+You just received a like.
+<%= link_to 'View this', like_path(@paylod) %>
+```
+
+```ruby
+# app/serializers/notifiers/like_serializer.rb
+class LikeSerializer < ApplicationSerializer
+  attributes :alert, :badge
+
+  def alert
+    "You've just received a like!"
+  end
+
+  def badge
+    object.like.recipient.likes.unread.count
+  end
+end
+```
+
 
 ## Concepts
 
@@ -75,10 +85,8 @@ depending on what transports should be supported.
 
 ### Channels
 
-A way to communicate with your user. ActiveNotifier ships with transports that lets you
-deliver through email and push (given some dependencies are present).
-
-A channel may have one or more transports.
+A way to communicate with your user. ActiveNotifier ships with transports that
+lets you deliver through email and push (given some dependencies are present).
 
 #### Email
 
@@ -111,11 +119,10 @@ end
 A transport represents a communication channel and a way of delivering a message
 to your user.
 
-ActiveNotifier ships with 3 transports
+ActiveNotifier ships with 2 transports
 
 * `ActiveNotifier::Transports::ActionMailer`
-* `ActiveNotifier::Transports::APNS`
-* `ActiveNotifier::Transports::GCM`
+* `ActiveNotifier::Transports::Pushmeup`
 
 
 ## Contributing to active-notifier
