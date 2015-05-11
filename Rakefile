@@ -21,6 +21,7 @@ Jeweler::Tasks.new do |gem|
   gem.description = %Q{Simplifies sending notifications to your end users through multiple channels}
   gem.email = "tt@skalar.no"
   gem.authors = ["Theodor Tonum"]
+  gem.files = FileList['*']+FileList['lib/**/*.rb']
   # dependencies defined in Gemfile
 end
 Jeweler::RubygemsDotOrgTasks.new
