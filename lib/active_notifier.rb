@@ -7,4 +7,5 @@ module ActiveNotifier
 
   autoload :Base
   autoload :Transports
+  autoload :DeliveryImpossible
 end

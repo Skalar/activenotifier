@@ -13,6 +13,10 @@ module ActiveNotifier
       def deliverable(notifier)
         email_attribute = configuration.email_attribute
         to = notifier.recipient.public_send(email_attribute)
+        if to.blank?
+          raise ActiveNotifier::DeliveryImpossible.new("Recipient email not present.")
+        end
+
         mailer_class(notifier).notification({
           to: to
         })

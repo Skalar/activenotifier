@@ -21,7 +21,7 @@ module ActiveNotifier
         begin
           deliverable(channel).deliver_now
           delivered = true
-        rescue => e
+        rescue ActiveNotifier::DeliveryImpossible => e
           delivered = false
           msg = "Unable to deliver to channel #{channel}"
           ActiveNotifier.logger && ActiveNotifier.logger.warn(msg)

@@ -15,9 +15,15 @@ module ActiveNotifier
       def deliverable(notifier)
         token_attribute = configuration.token_attribute
         token = notifier.recipient.public_send(token_attribute)
+        if token.blank?
+          raise ActiveNotifier::DeliveryImpossible.new("Recipient mobile token not present.")
+        end
 
         network_attribute = configuration.network_attribute
         network = notifier.recipient.public_send(network_attribute)
+        if token.blank?
+          raise ActiveNotifier::DeliveryImpossible.new("Recipient network token not present.")
+        end
 
         payload = configuration.serializer.new(notifier).as_json(root: false)
 
