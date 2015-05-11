@@ -1,6 +1,6 @@
 source "http://rubygems.org"
 
-gem "activesupport", ">= 2.3.5"
+gem "activesupport", "~> 4.0"
 
 group :development do
   gem "rspec", "~> 3.0"
@@ -19,6 +19,6 @@ group :development do
   gem "pushmeup", "~> 0.3.0"
   gem "activejob", "~> 4.0"
 
-  gem "guard"
+  gem "guard", "~> 2.0"
   gem "guard-rspec", "~> 4.5.0", require: false
 end
