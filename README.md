@@ -1,3 +1,5 @@
+[![Codeship](https://img.shields.io/codeship/8c098d90-da0a-0132-b325-528f3b81d645.svg?style=plastic)](https://codeship.com/projects/79171)
+
 # ActiveNotifier
 
 ActiveNotifier makes it easy to send notifications to your end user through
