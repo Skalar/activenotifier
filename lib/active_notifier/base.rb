@@ -2,9 +2,6 @@ module ActiveNotifier
   class Base
     attr_accessor :recipient, :channels
 
-    cattr_accessor :configurations
-    self.configurations = {}
-
     def initialize(attributes={})
       attributes.each do |(key, value)|
         self.public_send("#{key}=", value)
@@ -30,11 +27,14 @@ module ActiveNotifier
     end
 
     class << self
+      attr_accessor :configurations
+
       def deliver_now(attributes)
         new(attributes).deliver_now
       end
 
       def deliver_through(channel, &blk)
+        self.configurations ||= {}
         config = Configuration.new.tap(&blk)
         configurations[channel] = config
       end
@@ -43,7 +43,7 @@ module ActiveNotifier
     private
 
     def deliverable(channel)
-      configuration = configurations[channel]
+      configuration = self.class.configurations[channel]
       transport = ActiveNotifier::Transports.for(channel, configuration, self)
       transport.deliverable(self)
     end
