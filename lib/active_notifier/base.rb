@@ -49,6 +49,8 @@ module ActiveNotifier
     end
 
     class Configuration
+      attr_accessor :data
+
       def initialize
         @data = {
           from: nil,
@@ -57,6 +59,8 @@ module ActiveNotifier
           superclass: ActionMailer::Base
         }
       end
+
+      delegate :[], to: :data
 
       def method_missing(*args, &blk)
         attribute, value = args

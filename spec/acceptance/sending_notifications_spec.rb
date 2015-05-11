@@ -46,6 +46,17 @@ describe "sending notifications" do
     end
   end
 
+  class MultipleLikeNotifier < ActiveNotifier::Base
+    attr_accessor :like
+
+    deliver_through :push do |config|
+      config.device_list_attribute :devices
+      config.network_attribute :network
+      config.token_attribute :token
+      config.serializer LikeNotificationSerializer
+    end
+  end
+
   before(:each) do
     ActionMailer::Base.deliveries.clear
   end
@@ -94,6 +105,26 @@ describe "sending notifications" do
       like: double('Like'),
       channels: [:push]
     })
+  end
+
+  describe "sending push to multiple devices" do
+    let(:recipient) do
+      double({
+        devices: [
+          double(network: 'apns', token: 'abcdefg'),
+          double(network: 'gcm', token: '12345678')
+        ]
+      })
+    end
+    it "sends a push notification (apns AND gcm)" do
+      expect(GCM).to receive(:send_notification).with('12345678', expected_push_payload)
+      expect(APNS).to receive(:send_notification).with('abcdefg', expected_push_payload)
+      MultipleLikeNotifier.deliver_now({
+        recipient: recipient,
+        like: double('Like'),
+        channels: [:push]
+      })
+    end
   end
 
   describe "fallback channels", :focus do
