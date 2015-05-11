@@ -7,6 +7,8 @@ ActionMailer::Base.delivery_method = :test
 view_path = File.expand_path('../../app/views', __FILE__)
 ActionMailer::Base.prepend_view_path(view_path)
 
+I18n.available_locales = [:en, :nb]
+
 class LikeNotificationSerializer < ActiveModel::Serializer
   attributes :alert, :badge, :sound, :other
 
@@ -54,6 +56,18 @@ describe "sending notifications" do
       config.network_attribute :network
       config.token_attribute :token
       config.serializer LikeNotificationSerializer
+    end
+  end
+
+  class I18nLikeNotifier < ActiveNotifier::Base
+    attr_accessor :like
+
+    self.locale_attribute = :locale
+
+    deliver_through :email do |config|
+      config.email_attribute :email_address # defaults to :email
+      config.subject "You just received a like"
+      config.from "noreply@example.com"
     end
   end
 
@@ -124,6 +138,25 @@ describe "sending notifications" do
         like: double('Like'),
         channels: [:push]
       })
+    end
+  end
+
+  describe "using locale from user" do
+    it "renders the correct template when sending email" do
+      expect {
+        I18nLikeNotifier.deliver_now({
+          recipient: double({
+            email_address: 'john.doe@example.com',
+            locale: 'nb'
+          }),
+          like: double('Like'),
+          channels: [:email]
+        })
+      }.to change {
+        ActionMailer::Base.deliveries.size
+      }.from(0).to(1)
+      mail = ActionMailer::Base.deliveries.last
+      expect(mail.body.encoded.strip).to eq 'Du har mottatt en like!'
     end
   end
 

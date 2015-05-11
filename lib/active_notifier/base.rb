@@ -12,22 +12,24 @@ module ActiveNotifier
 
     def deliver_now
       delivered = false
-
-      until channels.empty? || delivered
-        channel = channels.shift
-        begin
-          deliverable(channel).deliver_now
-          delivered = true
-        rescue ActiveNotifier::DeliveryImpossible => e
-          delivered = false
-          msg = "Unable to deliver to channel #{channel}"
-          ActiveNotifier.logger && ActiveNotifier.logger.warn(msg)
+      locale = self.class.locale_for(recipient)
+      I18n.with_locale(locale) do
+        until channels.empty? || delivered
+          channel = channels.shift
+          begin
+            deliverable(channel).deliver_now
+            delivered = true
+          rescue ActiveNotifier::DeliveryImpossible => e
+            delivered = false
+            msg = "Unable to deliver to channel #{channel}"
+            ActiveNotifier.logger && ActiveNotifier.logger.warn(msg)
+          end
         end
       end
     end
 
     class << self
-      attr_accessor :configurations
+      attr_accessor :configurations, :locale_attribute
 
       def deliver_now(attributes)
         new(attributes).deliver_now
@@ -37,6 +39,12 @@ module ActiveNotifier
         self.configurations ||= {}
         config = Configuration.new.tap(&blk)
         configurations[channel] = config
+      end
+
+      def locale_for(recipient)
+        recipient.public_send(locale_attribute)
+      rescue
+        I18n.default_locale
       end
     end
 
