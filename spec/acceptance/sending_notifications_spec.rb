@@ -127,7 +127,7 @@ describe "sending notifications" do
     end
   end
 
-  describe "fallback channels", :focus do
+  describe "fallback channels" do
     it "sends an email of no token is present on the recipient" do
       expect {
         LikeNotifier.deliver_now({
